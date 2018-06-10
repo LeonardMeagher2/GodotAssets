@@ -49,7 +49,7 @@ class PointMass:
 		if(mass == 0):
 			return
 		var lp = position
-		position += lp - previousPosition + force * mass * delta * delta
+		position += lp - previousPosition + force * mass * delta
 		previousPosition = lp
 
 
@@ -138,7 +138,7 @@ func _physics_process(delta):
 			
 	#accumulate forces
 	for point in points:
-		point.force = Vector2(0,9.8*10.0)
+		point.force = Vector2(0,9.8)
 	#integrate
 	for point in points:
 		point.move(delta)
