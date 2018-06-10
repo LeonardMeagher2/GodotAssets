@@ -4,7 +4,7 @@ export(Texture) var cloth_texture
 export(int) var rows = 10
 export(int) var columns = 10
 
-export(float) var interations = 2.0
+export(int) var iterations = 3
 export(float) var pointRadius = 3.0
 
 #point Grid.
@@ -46,10 +46,9 @@ class PointMass:
 	
 	# Verlet integration
 	func move(delta):
-		if(mass == 0):
-			return
 		var lp = position
-		position += lp - previousPosition + force * mass * delta
+		if mass != 0 and force != Vector2(0,0):
+			position += lp - previousPosition + force * inv_mass * delta * delta
 		previousPosition = lp
 
 
@@ -73,21 +72,26 @@ class Constraint:
 			self.restLength = restLength
 	
 	
-	func satisfy():
-		#calculate the direction vector
-		var diff = (pointB.position - pointA.position)
-		var disSqr = diff.length_squared()
-		var restSqr = restLength * restLength
-		var invMassSum = pointA.inv_mass + pointB.inv_mass
+	func satisfy(delta):
+		var diff = pointA.position - pointB.position
+		var currentLength = diff.length()
+		var extension = currentLength - restLength
 		
-		if invMassSum == 0:
-			return
+		#spring force
+		var k = 90
+		var force = k * extension * diff.normalized()/2
+		pointA.force = -force; pointB.force = force; 
 		
-		var force = (disSqr - restSqr) / ((disSqr + restSqr) * invMassSum)
-		var impulse = diff * force 
+		#damping force
+		var velA = (pointA.position - pointA.previousPosition)/delta
+		var velB = (pointB.position - pointB.previousPosition)/delta
+		k = sqrt(k)
+		force = k * (velA - velB)
+		pointA.force -= force; pointB.force += force
 		
-		pointA.position += impulse * pointA.inv_mass
-		pointB.position -= impulse * pointB.inv_mass
+		pointA.move(delta); pointB.move(delta)
+		
+		
 
 func _ready():
 	create_grid()
@@ -131,13 +135,15 @@ func _physics_process(delta):
 			
 	#accumulate forces
 	for point in points:
-		point.force = Vector2(0,9.8)
+		point.force = Vector2(0,9.8*10)
 	#integrate
 	for point in points:
 		point.move(delta)
+		
 	#satisfy constraints
-	for constraint in constraints:
-		constraint.satisfy()
+	for i in iterations:
+		for constraint in constraints:
+			constraint.satisfy(delta)
 	update()
 	
 func _index_to_pos(i):
@@ -150,22 +156,20 @@ func set_point(x,y,p):
 func create_grid():
 	# build the grid by suppling the points
 	var grid = Vector2(columns,rows)
-	var size = Vector2(32,32)
+	#size is the distance bewteen points/ size of each cell
+	var size = Vector2(16,16)
 	if(cloth_texture):
 		size = cloth_texture.get_size() / grid
+		
 	points.resize(rows*columns)
 	for i in range(points.size()):
 		var mass = 1.0
 		var pos = _index_to_pos(i)
 		if pos.y == 0 and (pos.x == 0 or pos.x == columns-1):
 			mass = 0.0
-		#randomize()
-		#rand_seed(randi())
-		#var newPoint = PointMass.new(Vector2(x,y)*(randi()%50-25))
 		var newPoint = PointMass.new(Vector2(pos.x,pos.y)*size, mass)
 		points[i] = newPoint
 		
-	
 	#connect the points with constraints and add them to the constraints array
 	for y in rows:
 		for x in columns:

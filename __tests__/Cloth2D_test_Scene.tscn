@@ -5,7 +5,6 @@
 [node name="Scene" type="Node2D" index="0"]
 
 [node name="floor" type="StaticBody2D" parent="." index="0"]
-
 input_pickable = false
 collision_layer = 1
 collision_mask = 1
@@ -15,13 +14,11 @@ friction = 1.0
 bounce = 0.0
 
 [node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="floor" index="0"]
-
 position = Vector2( -2.3327, 555.183 )
 build_mode = 0
 polygon = PoolVector2Array( -3.19856, 1.30807, 1040.69, -2.19099, 882.062, 25.8015, 183.418, 30.4669 )
 
 [node name="KinematicBody2D" type="KinematicBody2D" parent="." index="1"]
-
 position = Vector2( 94, 48 )
 input_pickable = false
 collision_layer = 1
@@ -31,7 +28,6 @@ script = ExtResource( 1 )
 cloth_texture = null
 rows = 10
 columns = 10
-interations = 2.0
+iterations = 1
 pointRadius = 3.0
-
 
