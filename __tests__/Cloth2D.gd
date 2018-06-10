@@ -75,23 +75,16 @@ class Constraint:
 	
 	func satisfy():
 		#calculate the direction vector
-		var delta = (pointB.position - pointA.position)
-		var normal = delta.normalized()
-		var distance = delta.length()
-		
+		var diff = (pointB.position - pointA.position)
+		var disSqr = diff.length_squared()
+		var restSqr = restLength * restLength
 		var invMassSum = pointA.inv_mass + pointB.inv_mass
-		
-		var velA = pointA.position - pointA.previousPosition
-		var velB = pointB.position - pointB.previousPosition
-		
-		var relativeVelocity = velB - velA
-		var velocityAlongNormal = relativeVelocity.dot(normal)
 		
 		if invMassSum == 0:
 			return
 		
-		var force = (distance - restLength) / invMassSum 
-		var impulse = normal * force 
+		var force = (disSqr - restSqr) / ((disSqr + restSqr) * invMassSum)
+		var impulse = diff * force 
 		
 		pointA.position += impulse * pointA.inv_mass
 		pointB.position -= impulse * pointB.inv_mass
