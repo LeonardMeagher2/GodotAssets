@@ -7,7 +7,10 @@ path="res://.import/stagger.png-7dda04ca0bc2603d93aeded1b3862d12.stex"
 [deps]
 
 source_file="res://__tests__/test_assets/stagger.png"
+source_md5="a7796b414d03892977190ee42708677d"
+
 dest_files=[ "res://.import/stagger.png-7dda04ca0bc2603d93aeded1b3862d12.stex" ]
+dest_md5="4fbe565a65d39e56ab35a4a37ae0c4ea"
 
 [params]
 

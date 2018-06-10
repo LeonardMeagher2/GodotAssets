@@ -2,7 +2,8 @@
 
 [ext_resource path="res://__tests__/Cloth2D.gd" type="Script" id=1]
 
-[node name="Cloth2D" type="RigidBody2D" index="0"]
+[node name="Cloth2D" type="RigidBody2D"]
+
 position = Vector2( 546.088, 287.938 )
 input_pickable = false
 collision_layer = 1
@@ -23,11 +24,10 @@ linear_damp = -1.0
 angular_velocity = 0.0
 angular_damp = -1.0
 script = ExtResource( 1 )
-ClothTexture = null
-rows = 20
-coloumns = 20
-spacing = 30.0
-precision = 5.0
+cloth_texture = null
+rows = 10
+columns = 10
+interations = 2.0
 pointRadius = 3.0
-rigidity = 2
+
 

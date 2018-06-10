@@ -1,34 +1,103 @@
-extends RigidBody2D
+extends KinematicBody2D
 #texture to be used as cloth
-export(Texture) var ClothTexture 
-export(int) var rows
-export(int) var coloumns 
-export(float) var spacing = 50.0
-export(float) var precision = 5.0
+export(Texture) var cloth_texture 
+export(int) var rows = 10
+export(int) var columns = 10
+
+export(float) var interations = 2.0
 export(float) var pointRadius = 3.0
-export(int) var rigidity = 1
 
 #point Grid.
-var pointGrid = []
-#This must be a grid so that constraints can easily be configured
-#an implementation that doesnt use a grid matrix would be better so as to allow for other shapes
-#however that makes attaching contraints harder
-
+var points = []
 #constraint Array
-var constraintArray = []
+var constraints = []
 
 #physicsBody
 var bodyShape
 var shape
-var pointCloud = []
 
 #dragging
 var pressed = false
-var prevWeight
+var previousMass
 var movingPoint
 
+#PointMass class
+class PointMass:
+	#A point with mass, using Verlet integration
+	var previousPosition = Vector2()
+	var position = Vector2()
+	var mass = 1
+	var inv_mass = 1
+	var force = Vector2()
+	
+	func _init(position, mass):
+		setup(position,mass)
+
+	func setup(position,mass):
+		self.position = position
+		self.previousPosition = position
+		set_mass(mass)
+	
+	func set_mass(mass):
+		self.mass = mass
+		self.inv_mass = mass
+		if(mass != 0):
+			self.inv_mass = 1/mass
+	
+	# Verlet integration
+	func move(delta):
+		if(mass == 0):
+			return
+		var lp = position
+		position += lp - previousPosition + force * mass * delta * delta
+		previousPosition = lp
+
+
+#Constraint class
+class Constraint:
+	#The 2 point mass objects connected by this constraint
+	var pointA
+	var pointB
+	var restLength
+	
+	func _init(A,B,restLength = null):
+		setup(A,B,restLength)
+	
+	#configure this constraint
+	func setup(A, B, restLength = null):
+		pointA = A
+		pointB = B
+		if(restLength == null):
+			self.restLength = (A.position - B.position).length()
+		else:
+			self.restLength = restLength
+	
+	
+	func satisfy():
+		#calculate the direction vector
+		var delta = (pointB.position - pointA.position)
+		var normal = delta.normalized()
+		var distance = delta.length()
+		
+		var invMassSum = pointA.inv_mass + pointB.inv_mass
+		
+		var velA = pointA.position - pointA.previousPosition
+		var velB = pointB.position - pointB.previousPosition
+		
+		var relativeVelocity = velB - velA
+		var velocityAlongNormal = relativeVelocity.dot(normal)
+		
+		if invMassSum == 0:
+			return
+		
+		var force = (distance - restLength) / invMassSum 
+		var impulse = normal * force 
+		
+		pointA.position += impulse * pointA.inv_mass
+		pointB.position -= impulse * pointB.inv_mass
+
 func _ready():
-	createSystem (rows, coloumns)
+	create_grid()
 	set_process_input(true)
 	
 	#initialize its collision body structure
@@ -38,155 +107,104 @@ func _ready():
 	add_child(bodyShape)
 
 func _input(event):
+	if(event is InputEventKey and event.scancode == KEY_R and event.pressed == true):
+		get_tree().reload_current_scene()
 	if event is InputEventMouseButton and event.button_index == BUTTON_LEFT:
 		#check if a pointMass is being pressed
 		if Input.is_mouse_button_pressed(BUTTON_LEFT):
-			for rows in pointGrid:
-				for point in rows:
-					var vecDiff = get_local_mouse_position() - point.position
-					if vecDiff.length() < pointRadius*4 :
-						pressed = event.pressed
-						movingPoint = point
-						prevWeight = movingPoint.weight
+			for point in points:
+				var vecDiff = get_local_mouse_position() - point.position
+				if vecDiff.length() < pointRadius*4 :
+					pressed = event.pressed
+					movingPoint = point
+					previousMass = movingPoint.mass
 		elif pressed:
 			pressed = false
-			movingPoint.weight = prevWeight
+			movingPoint.set_mass(previousMass)
 			print("released")
 		
 	if pressed:
 		if event is InputEventMouseMotion:
 			movingPoint.position = get_local_mouse_position()
-			movingPoint.weight = 10000000
+			movingPoint.set_mass(0)
+
 
 func _physics_process(delta):
 	# refresh the point cloud
-	pointCloud = []
-	for rows in pointGrid:
-		for point in rows:
-			pointCloud.append(point.position)
+	var pointCloud = PoolVector2Array()
+	for point in points:
+		pointCloud.append(point.position)
 	shape.set_point_cloud(pointCloud)
 			
-	# >>>>>>calculate how much we will shorten each constraint by<<<<<< #
-	for i in range(rigidity):
-		for _constraint in constraintArray:
-			_constraint.adjustTo(spacing)
+	#accumulate forces
+	for point in points:
+		point.force = Vector2(0,9.8*10.0)
+	#integrate
+	for point in points:
+		point.move(delta)
+	#satisfy constraints
+	for constraint in constraints:
+		constraint.satisfy()
 	update()
 	
+func _index_to_pos(i):
+	return Vector2( i % columns, int(i / columns) )
+func get_point(x,y):
+	return points[y * columns + x]
+func set_point(x,y,p):
+	points[y * columns + x] = p
 
-func createSystem (rows, cols):
+func create_grid():
 	# build the grid by suppling the points
-	for y in rows:
+	var grid = Vector2(columns,rows)
+	var size = Vector2(32,32)
+	if(cloth_texture):
+		size = cloth_texture.get_size() / grid
+	points.resize(rows*columns)
+	for i in range(points.size()):
+		var mass = 1.0
+		var pos = _index_to_pos(i)
+		if pos.y == 0 and (pos.x == 0 or pos.x == columns-1):
+			mass = 0.0
+		#randomize()
+		#rand_seed(randi())
+		#var newPoint = PointMass.new(Vector2(x,y)*(randi()%50-25))
+		var newPoint = PointMass.new(Vector2(pos.x,pos.y)*size, mass)
+		points[i] = newPoint
 		
-		var thisRow = []
-		
-		for x in cols: 
-			var newPoint = pointMass.new()
-			
-			var _weight = 0.5
-			if (x == 0 or x == cols-1) and y == 0:
-				_weight = 5000
-			randomize()
-			rand_seed(randi())
-			newPoint.setup(Vector2(x,y)*(randi()%50-25), _weight)
-			thisRow.append(newPoint)
-			
-		pointGrid.append(thisRow)
 	
 	#connect the points with constraints and add them to the constraints array
 	for y in rows:
-		for x in cols:
+		for x in columns:
 			#if it isnt in the last column
 			#then connect it to the point in the next column
-			if x < cols-1: 
-				var newConstraint = constraint.new()
-				newConstraint.setup(pointGrid[y][x],pointGrid[y][x+1],spacing)
-				constraintArray.append(newConstraint)
+			var thisPoint = get_point(x,y)
+			if x < columns-1: 
+				var newConstraint = Constraint.new(thisPoint,get_point(x+1,y))
+				constraints.append(newConstraint)
 			
 			#if it isnt the last row
 			#then connect it to the point in the next row
 			if y < rows-1: 
-				var newConstraint = constraint.new()
-				newConstraint.setup(pointGrid[y][x],pointGrid[y+1][x],spacing)
-				constraintArray.append(newConstraint)
+				var newConstraint = Constraint.new(thisPoint, get_point(x,y+1))
+				constraints.append(newConstraint)
 
 func _draw():
 	draw_circle(Vector2(0,0),5,Color(1,0,0))
 	#draw each point
-	for rows in pointGrid:
-		for point in rows:
-			drawPoint(point)
+	for point in points:
+		draw_point(point)
 	#draw each constraint
-	for _constraint in constraintArray:
-		drawConstraint(_constraint)
+	for constraint in constraints:
+		draw_constraint(constraint)
 
-#Point mass class
-class pointMass:
-	var weight = 0 #from 0 to 1 (to make it easy to map to colors for debugging)
-	var position = Vector2()
-	
-	#configure this point
-	func setup(p, w):
-		weight = w
-		position = p
+func draw_point(point):
+	 draw_circle(point.position, pointRadius, Color(point.mass,point.mass,point.mass,1) )
 
-func drawPoint(_pointMass):
-	 draw_circle(_pointMass.position, pointRadius, Color(_pointMass.weight,_pointMass.weight,_pointMass.weight,1) )
 
-#Constraint class
-class constraint:
-	#The 2 point mass objects connected by this constraint
-	var pointA
-	var pointB
-	var length
-	var extension
 	
-	#configure this constraint
-	func setup(A, B, spacing):
-		pointA = A
-		pointB = B
-		length = getLength() 
-		extension = length - spacing
-	
-	#spacing is a scalar that determines how close the constraint wants the points to be
-	func adjustTo(spacing):
-		#calculate the direction vector
-		var AtoB_UnitVec = (pointB.position - pointA.position).normalized()
-		
-		#current constraint length
-		length = getLength() 
-		
-		#calculate the extension from how long it should be
-		extension = length - spacing
-		
-		#if the length doesnt fall within range of precision
-		#then adjust it
-#		if !(-precision < extension and extension < precision) : 
-#			var speed = sign(extension) * maxUnsignedSpeed
-		
-		#calculate who gets moved more
-		#the bigger the point's fractional weight, the less it moves
-		# the longer the extension the faster it moves
-		var A_distanceMultiplier = 1 - pointA.weight/(pointA.weight + pointB.weight)
-		A_distanceMultiplier *= extension #*10/spacing
-		var B_distanceMultiplier = 1 - pointB.weight/(pointA.weight + pointB.weight)
-		B_distanceMultiplier *= extension #*10/spacing
-		
-		#find its new position
-		var newPointAPos = pointA.position + AtoB_UnitVec * A_distanceMultiplier 
-		var newPointBPos = pointB.position - AtoB_UnitVec * B_distanceMultiplier 
-		var newLength = (newPointBPos-newPointAPos).length()
-		
-		#move the point
-		if newLength < length or newLength < spacing*2 :
-			pointA.position = newPointAPos
-			pointB.position = newPointBPos
-	
-	# calculate the length of the constraint
-	func getLength():
-		return (pointB.position - pointA.position).length()
-		
-	
-func drawConstraint(_constraint):
-	var absFracExten = clamp(abs(_constraint.extension/(3*spacing)),0,1)
-	var thisColor = Color.from_hsv(absFracExten,absFracExten,absFracExten)
-	draw_line(_constraint.pointA.position, _constraint.pointB.position,thisColor)
+func draw_constraint(constraint):
+	#var absFracExten = clamp(abs(_constraint.extension/(3*spacing)),0,1)
+	#var thisColor = Color.from_hsv(absFracExten,absFracExten,absFracExten)
+	draw_line(constraint.pointA.position, constraint.pointB.position,ColorN("red"))
+	pass

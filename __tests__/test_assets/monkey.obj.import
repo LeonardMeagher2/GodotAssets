@@ -9,7 +9,10 @@ path="res://.import/monkey.obj-266a877551300730d79485ca58525a83.mesh"
 files=[ "res://.import/monkey.obj-266a877551300730d79485ca58525a83.mesh" ]
 
 source_file="res://__tests__/test_assets/monkey.obj"
+source_md5="e355fc4d1f2027c7accd2169e9f47449"
+
 dest_files=[ "res://.import/monkey.obj-266a877551300730d79485ca58525a83.mesh", "res://.import/monkey.obj-266a877551300730d79485ca58525a83.mesh" ]
+dest_md5="1977e48c79521826c3ec2bddfc564574"
 
 [params]
 

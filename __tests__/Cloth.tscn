@@ -1,0 +1,18 @@
+[gd_scene load_steps=2 format=2]
+
+[ext_resource path="res://2D/Cloth.gd" type="Script" id=1]
+
+[node name="Cloth" type="Node2D" index="0"]
+
+script = ExtResource( 1 )
+_sections_unfolded = [ "Visibility" ]
+simulate = false
+gravity_vec = Vector2( 0, 1 )
+gravity = 98
+texture = null
+normal_map = null
+uv_offset = Vector2( 0, 0 )
+uv_scale = Vector2( 1, 1 )
+uv_rotation = 0.0
+
+
