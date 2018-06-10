@@ -7,10 +7,7 @@ path="res://.import/colorbars.png-d0e4749afc08cb2b6e7b870b4fcc9a79.stex"
 [deps]
 
 source_file="res://__tests__/test_assets/colorbars.png"
-source_md5="0bf269b8924e3b6b093560831bc7329a"
-
 dest_files=[ "res://.import/colorbars.png-d0e4749afc08cb2b6e7b870b4fcc9a79.stex" ]
-dest_md5="55a6f987952c8572c072cb30b7efd546"
 
 [params]
 
