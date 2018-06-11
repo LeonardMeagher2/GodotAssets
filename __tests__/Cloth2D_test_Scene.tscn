@@ -28,6 +28,6 @@ script = ExtResource( 1 )
 cloth_texture = null
 rows = 10
 columns = 10
-iterations = 1
+iterations = 2
 pointRadius = 3.0
 

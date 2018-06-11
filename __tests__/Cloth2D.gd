@@ -21,6 +21,9 @@ var pressed = false
 var previousMass
 var movingPoint
 
+#wind
+var time = 0
+
 #PointMass class
 class PointMass:
 	#A point with mass, using Verlet integration
@@ -78,8 +81,8 @@ class Constraint:
 		var extension = currentLength - restLength
 		
 		#spring force
-		var k = 90
-		var force = k * extension * diff.normalized()/2
+		var k = 80
+		var force = k * extension * diff.normalized()
 		pointA.force = -force; pointB.force = force; 
 		
 		#damping force
@@ -89,7 +92,26 @@ class Constraint:
 		force = k * (velA - velB)
 		pointA.force -= force; pointB.force += force
 		
+		# apply the forces
 		pointA.move(delta); pointB.move(delta)
+		
+		#adjust point pos for realism
+		if pointA.mass > 0 and pointB.mass > 0:
+			diff = pointB.position - pointA.position
+			var diffUnitVec = diff.normalized()
+			currentLength = diff.length()
+			extension = currentLength - restLength
+			if abs(extension/restLength) > 0.1:
+				#snap the points so the constraint do not overextend/overcontract
+				var correctionLength = currentLength - restLength * (1 + 0.1 * sign(extension))
+				#print("currentLength: "+str(currentLength)+"--snapped->> " + str(restLength * (1 + 0.1 * sign(extension))))
+				
+				pointA.position += diffUnitVec * correctionLength/2.0
+				pointA.previousPosition += diffUnitVec * correctionLength/2.0
+				
+				pointB.position -= diffUnitVec * correctionLength/2.0
+				pointB.previousPosition -= diffUnitVec * correctionLength/2.0
+
 		
 		
 
@@ -134,8 +156,11 @@ func _physics_process(delta):
 	shape.set_point_cloud(pointCloud)
 			
 	#accumulate forces
+	time += delta
 	for point in points:
 		point.force = Vector2(0,9.8*10)
+		# wind
+		point.force += Vector2(1,-0.9) * pow(sin(time*PI/2),2) * 200 * pow(sin(point.position.x/(20*PI)),2)
 	#integrate
 	for point in points:
 		point.move(delta)
@@ -157,7 +182,7 @@ func create_grid():
 	# build the grid by suppling the points
 	var grid = Vector2(columns,rows)
 	#size is the distance bewteen points/ size of each cell
-	var size = Vector2(16,16)
+	var size = Vector2(32,32)
 	if(cloth_texture):
 		size = cloth_texture.get_size() / grid
 		
@@ -165,7 +190,7 @@ func create_grid():
 	for i in range(points.size()):
 		var mass = 1.0
 		var pos = _index_to_pos(i)
-		if pos.y == 0 and (pos.x == 0 or pos.x == columns-1):
+		if pos.y == 0 and (pos.x == 0 or pos.x == columns -1) :
 			mass = 0.0
 		var newPoint = PointMass.new(Vector2(pos.x,pos.y)*size, mass)
 		points[i] = newPoint
