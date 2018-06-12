@@ -1,11 +1,23 @@
-[gd_scene load_steps=2 format=2]
+[gd_scene load_steps=4 format=2]
 
-[ext_resource path="res://__tests__/Cloth2D.gd" type="Script" id=1]
+[ext_resource path="res://__tests__/Cloth2D.tscn" type="PackedScene" id=1]
+[ext_resource path="res://__tests__/RigidBody2D.gd" type="Script" id=2]
+
+[sub_resource type="CircleShape2D" id=1]
+
+custom_solver_bias = 0.0
+radius = 25.0
 
 [node name="Scene" type="Node2D" index="0"]
 
-[node name="floor" type="StaticBody2D" parent="." index="0"]
+[node name="Cloth2D" parent="." index="0" instance=ExtResource( 1 )]
+mass = 2.0
+friction = 0.0
+pointRadius = 2.0
+springConstant = 80.0
+dampingConstant = 10.0
 
+[node name="floor" type="StaticBody2D" parent="." index="1"]
 input_pickable = false
 collision_layer = 1
 collision_mask = 1
@@ -13,25 +25,39 @@ constant_linear_velocity = Vector2( 0, 0 )
 constant_angular_velocity = 0.0
 friction = 1.0
 bounce = 0.0
+_sections_unfolded = [ "Collision", "Pickable" ]
 
 [node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="floor" index="0"]
-
 position = Vector2( -2.3327, 555.183 )
 build_mode = 0
 polygon = PoolVector2Array( -3.19856, 1.30807, 1040.69, -2.19099, 882.062, 25.8015, 183.418, 30.4669 )
 
-[node name="KinematicBody2D" type="KinematicBody2D" parent="." index="1"]
-
-position = Vector2( 94, 48 )
+[node name="RigidBody2D" type="RigidBody2D" parent="." index="2"]
+position = Vector2( 483.729, 460.402 )
 input_pickable = false
 collision_layer = 1
 collision_mask = 1
-collision/safe_margin = 0.08
-script = ExtResource( 1 )
-cloth_texture = null
-rows = 10
-columns = 10
-interations = 2.0
-pointRadius = 3.0
+mode = 0
+mass = 1.0
+friction = 0.0
+bounce = 0.0
+gravity_scale = 0.0
+custom_integrator = false
+continuous_cd = 0
+contacts_reported = 1
+contact_monitor = true
+sleeping = false
+can_sleep = false
+linear_velocity = Vector2( 0, 0 )
+linear_damp = 0.0
+angular_velocity = 0.0
+angular_damp = -1.0
+script = ExtResource( 2 )
+_sections_unfolded = [ "Linear" ]
 
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RigidBody2D" index="0"]
+shape = SubResource( 1 )
+__meta__ = {
+"_edit_lock_": true
+}
 
