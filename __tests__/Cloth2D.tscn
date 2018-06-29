@@ -2,23 +2,22 @@
 
 [ext_resource path="res://__tests__/Cloth2D.gd" type="Script" id=1]
 
-[node name="Cloth2D" type="RigidBody2D"]
-
+[node name="Cloth2D" type="RigidBody2D" index="0"]
 position = Vector2( 546.088, 287.938 )
 input_pickable = false
 collision_layer = 1
 collision_mask = 1
-mode = 0
+mode = 3
 mass = 1.0
 friction = 1.0
 bounce = 0.0
-gravity_scale = 1.0
-custom_integrator = false
+gravity_scale = 0.0
+custom_integrator = true
 continuous_cd = 0
-contacts_reported = 0
-contact_monitor = false
+contacts_reported = 10
+contact_monitor = true
 sleeping = false
-can_sleep = true
+can_sleep = false
 linear_velocity = Vector2( 0, 0 )
 linear_damp = -1.0
 angular_velocity = 0.0
@@ -27,7 +26,6 @@ script = ExtResource( 1 )
 cloth_texture = null
 rows = 10
 columns = 10
-interations = 2.0
+iterations = 3
 pointRadius = 3.0
-
 
