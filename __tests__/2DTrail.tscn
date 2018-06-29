@@ -3,7 +3,7 @@
 [ext_resource path="res://2D/2DTrail.gd" type="Script" id=1]
 [ext_resource path="res://__tests__/test_assets/icon.png" type="Texture" id=2]
 
-[sub_resource type="Animation" id=2]
+[sub_resource type="Animation" id=1]
 
 length = 2.0
 loop = true
@@ -35,13 +35,13 @@ tracks/1/keys = {
 
 [node name="Node2D" type="Node2D" index="0"]
 
-position = Vector2( 598.232, 0 )
-rotation = 3.24111
+position = Vector2( 582.518, 0 )
+rotation = 2.98202
 script = ExtResource( 1 )
 _sections_unfolded = [ "Material", "Transform" ]
 emitting = true
 life = 0.25
-look_at_emitter = false
+look_at_emitter = true
 offset = Vector2( 0, 100 )
 texture = ExtResource( 2 )
 normal_map = null
@@ -61,7 +61,7 @@ autoplay = "Move"
 playback_process_mode = 1
 playback_default_blend_time = 0.0
 playback_speed = 1.0
-anims/Move = SubResource( 2 )
+anims/Move = SubResource( 1 )
 blend_times = [  ]
 
 

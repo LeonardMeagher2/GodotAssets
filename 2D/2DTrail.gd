@@ -69,8 +69,9 @@ func addCurrentPoint():
 	#this supports complex rotations (inherited rotations) better
 	
 	var transform = global_transform
-	if(look_at_emitter == true):
-		var last_point = points[points.size()-1]
+	var size = points.size()
+	if(look_at_emitter == true && size > 0):
+		var last_point = points[size-1]
 		transform = Transform2D(global_transform.origin.angle_to(last_point),Vector2())
 	
 	var upperDir = transform.basis_xform(Vector2(0,-1))

@@ -4,7 +4,6 @@ export(Texture) var cloth_texture
 export(int) var rows = 10
 export(int) var columns = 10
 
-export(float) var interations = 2.0
 export(float) var pointRadius = 3.0
 
 #point Grid.
