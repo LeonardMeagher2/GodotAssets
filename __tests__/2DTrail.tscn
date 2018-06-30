@@ -1,7 +1,6 @@
-[gd_scene load_steps=4 format=2]
+[gd_scene load_steps=3 format=2]
 
 [ext_resource path="res://2D/2DTrail.gd" type="Script" id=1]
-[ext_resource path="res://__tests__/test_assets/icon.png" type="Texture" id=2]
 
 [sub_resource type="Animation" id=1]
 
@@ -15,10 +14,10 @@ tracks/0/loop_wrap = true
 tracks/0/imported = false
 tracks/0/enabled = true
 tracks/0/keys = {
-"times": PoolRealArray( 0, 1 ),
-"transitions": PoolRealArray( 1, 1 ),
+"times": PoolRealArray( 0, 0.7, 1.5 ),
+"transitions": PoolRealArray( 1, 1, 1 ),
 "update": 0,
-"values": [ Vector2( 0, 0 ), Vector2( 600, 0 ) ]
+"values": [ Vector2( 0, 0 ), Vector2( 300, 300 ), Vector2( 600, 0 ) ]
 }
 tracks/1/type = "value"
 tracks/1/path = NodePath(".:rotation_degrees")
@@ -30,28 +29,28 @@ tracks/1/keys = {
 "times": PoolRealArray( 0, 2 ),
 "transitions": PoolRealArray( 1, 1 ),
 "update": 0,
-"values": [ 0.0, 360.0 ]
+"values": [ 45.0, 360.0 ]
 }
 
 [node name="Node2D" type="Node2D" index="0"]
 
-position = Vector2( 582.518, 0 )
-rotation = 2.98202
+position = Vector2( 404.411, 239.921 )
+rotation = 3.40056
 script = ExtResource( 1 )
-_sections_unfolded = [ "Material", "Transform" ]
+_sections_unfolded = [ "Material", "Transform", "Visibility" ]
 emitting = true
-life = 0.25
+life = 1.0
 look_at_emitter = true
-offset = Vector2( 0, 100 )
-texture = ExtResource( 2 )
+offset = Vector2( 0, 0 )
+texture = null
 normal_map = null
 color = null
 uv_offset = Vector2( 0, 0 )
 uv_scale = Vector2( 1, 1 )
 uv_rotation = 0.0
-width = 200.0
+width = 100.0
 width_curve = null
-uv_width_factor = 0.0
+uv_width_factor = 1.0
 maximum_point_distance = 10.0
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="." index="0"]

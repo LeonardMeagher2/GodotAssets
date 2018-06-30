@@ -25,19 +25,16 @@ export(float) var maximum_point_distance = 10.0
 var points = PoolVector2Array()
 var points_data = [] #[life, [upperDir, lowerDir] ]
 
-onready var last_position = [global_position,global_position]
+var last_position = Vector2()
 var bounds = Rect2()
 var uv_center = Transform2D(0,Vector2(0.5,0.5))
-
-
 
 func _ready():
 	set_notify_transform(true)
 	
-
 func _notification(what):
 	if(what == NOTIFICATION_TRANSFORM_CHANGED):
-		last_position = [global_position, global_position]
+		last_position = global_position
 
 func _process(delta):
 	# look for dead points, searching from the back of the array to avoid issues with removing
@@ -48,7 +45,7 @@ func _process(delta):
 			points.remove(i)
 			points_data.remove(i)
 			pass
-
+	
 	update()
 
 	if(emitting == false):
@@ -63,21 +60,19 @@ func _process(delta):
 		addCurrentPoint();
 
 func addCurrentPoint():
-	var age = 0
 	#this method of calculating the upper and lower point works better 
 	#because it depends only on the transform of the emitter at this time
 	#this supports complex rotations (inherited rotations) better
 	
 	var transform = global_transform
-	var size = points.size()
-	if(look_at_emitter == true && size > 0):
-		var last_point = points[size-1]
-		transform = Transform2D(global_transform.origin.angle_to(last_point),Vector2())
+	if(look_at_emitter == true):
+		transform = Transform2D(global_position.angle_to_point(last_position),Vector2())
 	
+	var age = 0
 	var upperDir = transform.basis_xform(Vector2(0,-1))
 	var lowerDir = transform.basis_xform(Vector2(0,1))
 	
-	points.append( global_position+(global_transform.basis_xform(offset)) )
+	points.append(global_transform.xform(offset) )
 	points_data.append([age,upperDir,lowerDir])
 
 #point properties: position, age, angle
